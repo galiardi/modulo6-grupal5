@@ -1,28 +1,36 @@
 async function getPokemons() {
   try {
     const response = await fetch('./pokemones');
-    const { pokemonList, error } = await response.json();
+    const { data: pokemonList, error } = await response.json();
     if (error) {
       console.log(error);
-      return [];
+      return { error };
     }
-    return pokemonList;
+    return { pokemonList };
   } catch (error) {
     console.log(error);
-    return [];
+    return { error: error.message };
   }
 }
 
 async function renderPokemons(renderDiv) {
-  const pokemonList = await getPokemons();
-  const pokemonDivs = pokemonList.map((pokemon) => {
-    return `
+  const { pokemonList, error } = await getPokemons();
+  if (pokemonList) {
+    const pokemonDivs = pokemonList.map((pokemon) => {
+      return `
       <div class="pokemon">
         <img src="${pokemon.sprites.front_default}" alt="imagen de ${pokemon.name}" />
         <p>${pokemon.name}</p>
       </div>`;
-  });
-  renderDiv.innerHTML = pokemonDivs.join('');
+    });
+    renderDiv.innerHTML = `<div class="pokemon-list">${pokemonDivs.join(
+      ''
+    )}</div>`;
+  }
+
+  if (error) {
+    renderDiv.innerHTML = `<p class="error">Error al solicitar los pokemones: ${error}</p>`;
+  }
 }
 
 export { getPokemons, renderPokemons };

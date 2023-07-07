@@ -8,20 +8,31 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.get('/pokemones', async (req, res) => {
+  const serverResponse = {
+    data: null,
+    error: null,
+  };
+
   try {
+    // throw new Error('Testeando captura de error en la ruta get /pokemones');
+
     const response = await fetch(
       'https://pokeapi.co/api/v2/pokemon/?offset=0&limit=150'
     );
     const { results } = await response.json();
+
     const promiseList = results.map((result) => {
       return fetch(result.url).then((response) => response.json());
     });
     const pokemonList = await Promise.all(promiseList);
-    res.json({ pokemonList, error: null });
+
+    serverResponse.data = pokemonList;
   } catch (error) {
     console.log(error);
-    res.json({ pokemonList: null, error: error.code });
+    serverResponse.error = error.message;
   }
+
+  res.send(serverResponse);
 });
 
 module.exports = app;
